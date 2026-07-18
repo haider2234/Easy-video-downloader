@@ -18,16 +18,15 @@ class AnalyzeRequest(BaseModel):
 
 @app.post("/api/analyze")
 async def analyze_video(request: AnalyzeRequest):
-    # ⚙️ Advanced extractor arguments targeting client-emulated streaming verification tokens
+    # ⚙️ Advanced extractor arguments to impersonate native desktop browser traffic
     ydl_opts = {
         'skip_download': True, 
         'quiet': True,
         'format': 'best',
         'no_warnings': True,
-        # Emulating safe browser clients forces YouTube to bypass the standard server block
         'extractor_args': {
             'youtube': {
-                'player_client': ['android', 'web'],
+                'player_client': ['web_safari'],
                 'skip': ['dash', 'hls']
             }
         }
