@@ -1,17 +1,12 @@
 {
-  "functions": {
-    "main.py": {
-      "runtime": "vercel-python@0.8.4"
-    }
-  },
   "rewrites": [
     {
       "source": "/api/analyze",
-      "destination": "main.py"
+      "destination": "/main.py"
     },
     {
       "source": "/(.*)",
-      "destination": "index.html"
+      "destination": "/index.html"
     }
   ]
 }
