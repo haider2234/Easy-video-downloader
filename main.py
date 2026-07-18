@@ -16,14 +16,21 @@ app.add_middleware(
 class AnalyzeRequest(BaseModel):
     url: str
 
-# 💡 Make sure this decorator looks exactly like this line:
 @app.post("/api/analyze")
 async def analyze_video(request: AnalyzeRequest):
+    # ⚙️ Advanced extractor arguments targeting client-emulated streaming verification tokens
     ydl_opts = {
         'skip_download': True, 
         'quiet': True,
         'format': 'best',
-        'no_warnings': True
+        'no_warnings': True,
+        # Emulating safe browser clients forces YouTube to bypass the standard server block
+        'extractor_args': {
+            'youtube': {
+                'player_client': ['android', 'web'],
+                'skip': ['dash', 'hls']
+            }
+        }
     }
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
