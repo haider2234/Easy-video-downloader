@@ -3,8 +3,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import yt_dlp
 
-# We drop the strict root_path setting and explicitly accept both routes 
-# to guarantee a match on Vercel's multi-layered gateway.
 app = FastAPI()
 
 app.add_middleware(
@@ -18,11 +16,13 @@ app.add_middleware(
 class AnalyzeRequest(BaseModel):
     url: str
 
-# By declaring BOTH paths, we guarantee it works locally under /api/analyze 
-# AND live on Vercel if it strips the prefix down to /analyze.
-@app.post("/analyze")
-@app.post("/api/analyze")
-async def analyze_video(request: AnalyzeRequest):
+# A dynamic path matcher catches any variant (/analyze, /api/analyze, etc.) 
+# that Vercel routes into this specific serverless instance.
+@app.post("/{catchall:path}")
+async def analyze_video(catchall: str, request: AnalyzeRequest):
+    # Log the matched path internally to confirm connectivity if needed
+    print(f"Executing video analysis via incoming path context: {catchall}")
+    
     ydl_opts = {
         'skip_download': True, 
         'quiet': True,
