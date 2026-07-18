@@ -16,9 +16,10 @@ app.add_middleware(
 class AnalyzeRequest(BaseModel):
     url: str
 
-# This route decorator handles requests sent to your endpoint
-@app.post("/api/analyze")
-@app.post("/")
+# By using a universal router matcher, FastAPI captures any 
+# inbound data method configuration channeled by Vercel
+@app.api_route("/api/analyze", methods=["POST"])
+@app.api_route("/", methods=["POST"])
 async def analyze_video(request: AnalyzeRequest):
     ydl_opts = {
         'skip_download': True, 
