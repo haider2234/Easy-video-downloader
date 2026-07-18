@@ -120,13 +120,15 @@
             linksContainer.innerHTML = '';
 
             try {
-                // Route target mappings hit the FastAPI instance seamlessly
-                const response = await fetch('/api/analyze', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url: url })
-                });
-                
+              // Ensure the request method explicitly reads POST in uppercase
+const response = await fetch('/api/analyze', {
+    method: 'POST',
+    headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+    },
+    body: JSON.stringify({ url: url }) // Packages your input link neatly inside the JSON scheme
+});
                 const data = await response.json();
                 if(!response.ok) throw new Error(data.detail || "Error communicating with endpoint pipelines.");
                 
