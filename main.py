@@ -1,7 +1,9 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 import yt_dlp
+import httpx
 import os
 import tempfile
 
@@ -20,7 +22,6 @@ class AnalyzeRequest(BaseModel):
 
 @app.post("/api/analyze")
 async def analyze_video(request: AnalyzeRequest):
-    # 🛠️ We remove 'format': 'best' so it grabs the entire manifest of streams
     ydl_opts = {
         'skip_download': True, 
         'quiet': True,
@@ -53,11 +54,8 @@ async def analyze_video(request: AnalyzeRequest):
             available_formats = []
             seen_resolutions = set()
 
-            # Iterate backwards to process higher qualities first
             for f in formats[::-1]:
                 res = f.get('height')
-                # Grab video streams. (Note: Premium video-only streams require front-end muxing, 
-                # so we pull direct streams that contain active URLs)
                 if res and f.get('url'):
                     res_str = f"{res}p"
                     if res_str not in seen_resolutions:
@@ -68,7 +66,6 @@ async def analyze_video(request: AnalyzeRequest):
                             'direct_url': f.get('url')
                         })
             
-            # Fallback if no specific heights are grouped
             if not available_formats and info.get('url'):
                 available_formats.append({
                     'resolution': 'Default Quality',
@@ -93,3 +90,44 @@ async def analyze_video(request: AnalyzeRequest):
                 os.remove(temp_cookie_file)
             except Exception:
                 pass
+
+# 🔄 🛡️ SOLUTION: The IP-Bypass Proxy Streaming Tunnel
+@app.get("/api/download")
+async def download_proxy(url: str, title: str = "video", ext: str = "mp4"):
+    if not url:
+        raise HTTPException(status_code=400, detail="Missing source URL path string.")
+    
+    # Standard header spoofing so YouTube believes the Vercel server is a media player
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "*/*",
+        "Connection": "keep-alive"
+    }
+    
+    client = httpx.AsyncClient(timeout=60.0)
+    
+    async def stream_generator():
+        try:
+            # We open an asynchronous connection to stream the video chunk by chunk
+            async with client.stream("GET", url, headers=headers) as r:
+                r.raise_for_status()
+                async for chunk in r.aiter_bytes(chunk_size=1024 * 64): # 64KB Blocks
+                    yield chunk
+        except Exception as e:
+            print(f"Proxy streaming failed mid-transit: {str(e)}")
+        finally:
+            await client.aclose()
+
+    # Clean the title string for file systems
+    safe_title = "".join([c for c in title if c.isalpha() or c.isdigit() or c==' ']).rstrip()
+    filename = f"{safe_title}.{ext}"
+
+    # Return the file stream back to the browser with headers forcing a local save file window
+    return StreamingResponse(
+        stream_generator(),
+        media_type="application/octet-stream",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Cache-Control": "no-cache"
+        }
+    )
