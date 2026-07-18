@@ -3,9 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import yt_dlp
 
-# We explicitly tell FastAPI to handle routes starting with /api
-# This prevents Vercel's proxy from confusing the internal routing path.
-app = FastAPI(docs_url="/api/docs", openapi_url="/api/openapi.json")
+app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
@@ -18,10 +16,9 @@ app.add_middleware(
 class AnalyzeRequest(BaseModel):
     url: str
 
-# To guarantee a clean match across local development (vercel dev) 
-# and the live production edge, we define both absolute paths.
+# This route decorator handles requests sent to your endpoint
 @app.post("/api/analyze")
-@app.post("/analyze")
+@app.post("/")
 async def analyze_video(request: AnalyzeRequest):
     ydl_opts = {
         'skip_download': True, 
