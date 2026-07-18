@@ -2,6 +2,8 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import yt_dlp
+import os
+import tempfile
 
 app = FastAPI()
 
@@ -18,7 +20,6 @@ class AnalyzeRequest(BaseModel):
 
 @app.post("/api/analyze")
 async def analyze_video(request: AnalyzeRequest):
-    # ⚙️ Advanced extractor arguments to impersonate native desktop browser traffic
     ydl_opts = {
         'skip_download': True, 
         'quiet': True,
@@ -26,11 +27,27 @@ async def analyze_video(request: AnalyzeRequest):
         'no_warnings': True,
         'extractor_args': {
             'youtube': {
-                'player_client': ['web_safari'],
+                'player_client': ['web', 'android'],
                 'skip': ['dash', 'hls']
             }
         }
     }
+
+    # 🔒 Extract the secure cookie layout from Vercel's Environment variables
+    cookies_content = os.getenv("YT_COOKIES")
+    temp_cookie_file = None
+
+    if cookies_content:
+        try:
+            # Create a temporary file on the serverless instance to store the cookies
+            with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as f:
+                f.write(cookies_content)
+                temp_cookie_file = f.name
+            # Inject the temporary file path into yt-dlp configuration
+            ydl_opts['cookiefile'] = temp_cookie_file
+        except Exception as ce:
+            print(f"Cookie setup warning: {str(ce)}")
+
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(request.url, download=False)
@@ -69,3 +86,10 @@ async def analyze_video(request: AnalyzeRequest):
             
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+    finally:
+        # Clean up the temporary cookie file after execution to keep the environment secure
+        if temp_cookie_file and os.path.exists(temp_cookie_file):
+            try:
+                os.remove(temp_cookie_file)
+            except Exception:
+                pass
