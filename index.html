@@ -163,14 +163,13 @@
                 document.getElementById('thumb').src = data.thumbnail || '';
                 document.getElementById('videoTitle').innerText = data.title || 'Parsed Media Resource';
                 
-          data.formats.forEach(format => {
+data.formats.forEach(format => {
     const el = document.createElement('a');
-    el.href = format.direct_url;
-    el.target = "_blank";
-    el.rel = "noopener noreferrer";
     
-    // 💡 ADD THIS LINE BELOW TO FORCE A DOWNLOAD INSTANTLY
-    el.setAttribute('download', `${data.title || 'video'}.mp4`);
+    // 💡 We encode the URL and route it directly back to our server to bypass the IP lock
+    const proxyUrl = `/api/download?url=${encodeURIComponent(format.direct_url)}&title=${encodeURIComponent(data.title || 'video')}&ext=${format.ext}`;
+    el.href = proxyUrl;
+    el.target = "_blank";
     
     el.className = "group flex justify-between items-center bg-slate-950/60 hover:bg-slate-900 border border-white/5 hover:border-white/10 px-4 py-3.5 rounded-xl text-xs transition font-medium w-full text-slate-300 no-underline";
     
@@ -186,7 +185,6 @@
     `;
     linksContainer.appendChild(el);
 });
-
                 result.classList.remove('hidden');
             } catch (err) {
                 alert(err.message);
