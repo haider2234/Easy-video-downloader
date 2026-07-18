@@ -3,8 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import yt_dlp
 
-# root_path handles Vercel's implicit prefix routing layout out-of-the-box
-app = FastAPI(root_path="/api")
+# We drop the strict root_path setting and explicitly accept both routes 
+# to guarantee a match on Vercel's multi-layered gateway.
+app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
@@ -17,9 +18,11 @@ app.add_middleware(
 class AnalyzeRequest(BaseModel):
     url: str
 
+# By declaring BOTH paths, we guarantee it works locally under /api/analyze 
+# AND live on Vercel if it strips the prefix down to /analyze.
 @app.post("/analyze")
+@app.post("/api/analyze")
 async def analyze_video(request: AnalyzeRequest):
-    # 'format': 'best' targets pre-merged single-stream assets
     ydl_opts = {
         'skip_download': True, 
         'quiet': True,
@@ -34,10 +37,8 @@ async def analyze_video(request: AnalyzeRequest):
             available_formats = []
             seen_resolutions = set()
 
-            # Scan the structural metadata payload backwards for top configurations
             for f in formats[::-1]:
                 res = f.get('height')
-                # Ensure the stream track includes native audio and video configurations
                 if res and f.get('vcodec') != 'none' and f.get('acodec') != 'none':
                     res_str = f"{res}p"
                     if res_str not in seen_resolutions:
@@ -48,7 +49,6 @@ async def analyze_video(request: AnalyzeRequest):
                             'direct_url': f.get('url')
                         })
             
-            # Universal structural asset fallback router
             if not available_formats and info.get('url'):
                 available_formats.append({
                     'resolution': 'Standard Quality',
@@ -57,7 +57,7 @@ async def analyze_video(request: AnalyzeRequest):
                 })
             
             if not available_formats:
-                raise HTTPException(status_code=404, detail="No streaming links could be resolved for this URL.")
+                raise HTTPException(status_code=404, detail="No streaming links could be resolved.")
                 
             return {
                 "title": info.get('title', 'Extracted Video Asset'),
