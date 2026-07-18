@@ -20,10 +20,10 @@ class AnalyzeRequest(BaseModel):
 
 @app.post("/api/analyze")
 async def analyze_video(request: AnalyzeRequest):
+    # 🛠️ We remove 'format': 'best' so it grabs the entire manifest of streams
     ydl_opts = {
         'skip_download': True, 
         'quiet': True,
-        'format': 'best',
         'no_warnings': True,
         'extractor_args': {
             'youtube': {
@@ -33,17 +33,14 @@ async def analyze_video(request: AnalyzeRequest):
         }
     }
 
-    # 🔒 Extract the secure cookie layout from Vercel's Environment variables
     cookies_content = os.getenv("YT_COOKIES")
     temp_cookie_file = None
 
     if cookies_content:
         try:
-            # Create a temporary file on the serverless instance to store the cookies
             with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as f:
                 f.write(cookies_content)
                 temp_cookie_file = f.name
-            # Inject the temporary file path into yt-dlp configuration
             ydl_opts['cookiefile'] = temp_cookie_file
         except Exception as ce:
             print(f"Cookie setup warning: {str(ce)}")
@@ -56,9 +53,12 @@ async def analyze_video(request: AnalyzeRequest):
             available_formats = []
             seen_resolutions = set()
 
+            # Iterate backwards to process higher qualities first
             for f in formats[::-1]:
                 res = f.get('height')
-                if res and f.get('vcodec') != 'none' and f.get('acodec') != 'none':
+                # Grab video streams. (Note: Premium video-only streams require front-end muxing, 
+                # so we pull direct streams that contain active URLs)
+                if res and f.get('url'):
                     res_str = f"{res}p"
                     if res_str not in seen_resolutions:
                         seen_resolutions.add(res_str)
@@ -68,15 +68,16 @@ async def analyze_video(request: AnalyzeRequest):
                             'direct_url': f.get('url')
                         })
             
+            # Fallback if no specific heights are grouped
             if not available_formats and info.get('url'):
                 available_formats.append({
-                    'resolution': 'Standard Quality',
+                    'resolution': 'Default Quality',
                     'ext': info.get('ext') or 'mp4',
                     'direct_url': info.get('url')
                 })
             
             if not available_formats:
-                raise HTTPException(status_code=404, detail="No streaming links could be resolved.")
+                raise HTTPException(status_code=404, detail="No downloadable streaming links could be extracted.")
                 
             return {
                 "title": info.get('title', 'Extracted Video Asset'),
@@ -87,7 +88,6 @@ async def analyze_video(request: AnalyzeRequest):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     finally:
-        # Clean up the temporary cookie file after execution to keep the environment secure
         if temp_cookie_file and os.path.exists(temp_cookie_file):
             try:
                 os.remove(temp_cookie_file)
