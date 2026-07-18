@@ -163,25 +163,29 @@
                 document.getElementById('thumb').src = data.thumbnail || '';
                 document.getElementById('videoTitle').innerText = data.title || 'Parsed Media Resource';
                 
-                data.formats.forEach(format => {
-                    const el = document.createElement('a');
-                    el.href = format.direct_url;
-                    el.target = "_blank";
-                    el.rel = "noopener noreferrer";
-                    el.className = "group flex justify-between items-center bg-slate-950/60 hover:bg-slate-900 border border-white/5 hover:border-white/10 px-4 py-3.5 rounded-xl text-xs transition font-medium w-full text-slate-300 no-underline";
-                    
-                    el.innerHTML = `
-                        <div class="flex items-center gap-3">
-                            <div class="w-7 h-7 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 border border-blue-500/10">💾</div>
-                            <div class="flex flex-col text-left">
-                                <span class="text-slate-200 font-semibold">${format.resolution} Quality Stream</span>
-                                <span class="text-slate-500 text-[10px] mt-0.5">Container: ${format.ext.toUpperCase()}</span>
-                            </div>
-                        </div>
-                        <span class="text-blue-400 font-bold bg-blue-500/10 px-2.5 py-1.5 rounded-lg border border-blue-500/20 group-hover:bg-blue-600 group-hover:text-white transition uppercase text-[10px] tracking-wide">Download →</span>
-                    `;
-                    linksContainer.appendChild(el);
-                });
+          data.formats.forEach(format => {
+    const el = document.createElement('a');
+    el.href = format.direct_url;
+    el.target = "_blank";
+    el.rel = "noopener noreferrer";
+    
+    // 💡 ADD THIS LINE BELOW TO FORCE A DOWNLOAD INSTANTLY
+    el.setAttribute('download', `${data.title || 'video'}.mp4`);
+    
+    el.className = "group flex justify-between items-center bg-slate-950/60 hover:bg-slate-900 border border-white/5 hover:border-white/10 px-4 py-3.5 rounded-xl text-xs transition font-medium w-full text-slate-300 no-underline";
+    
+    el.innerHTML = `
+        <div class="flex items-center gap-3">
+            <div class="w-7 h-7 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 border border-blue-500/10">💾</div>
+            <div class="flex flex-col text-left">
+                <span class="text-slate-200 font-semibold">${format.resolution} Quality Stream</span>
+                <span class="text-slate-500 text-[10px] mt-0.5">Container: ${format.ext.toUpperCase()}</span>
+            </div>
+        </div>
+        <span class="text-blue-400 font-bold bg-blue-500/10 px-2.5 py-1.5 rounded-lg border border-blue-500/20 group-hover:bg-blue-600 group-hover:text-white transition uppercase text-[10px] tracking-wide">Download →</span>
+    `;
+    linksContainer.appendChild(el);
+});
 
                 result.classList.remove('hidden');
             } catch (err) {
