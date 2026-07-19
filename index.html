@@ -166,10 +166,14 @@
 data.formats.forEach(format => {
     const el = document.createElement('a');
     
-    // 💡 We encode the URL and route it directly back to our server to bypass the IP lock
-    const proxyUrl = `/api/download?url=${encodeURIComponent(format.direct_url)}&title=${encodeURIComponent(data.title || 'video')}&ext=${format.ext}`;
-    el.href = proxyUrl;
+    // Clean up the video title text so it doesn't break url parameters
+    const cleanTitle = encodeURIComponent(data.title.replace(/[^a-zA-Z0-9 ]/g, ""));
+    
+    // Append the direct download parameter directly onto the original URL string
+    // This tells the browser to download the file directly instead of opening it in a player
+    el.href = format.direct_url + `&title=${cleanTitle}`;
     el.target = "_blank";
+    el.setAttribute('download', `${data.title || 'video'}.mp4`);
     
     el.className = "group flex justify-between items-center bg-slate-950/60 hover:bg-slate-900 border border-white/5 hover:border-white/10 px-4 py-3.5 rounded-xl text-xs transition font-medium w-full text-slate-300 no-underline";
     
