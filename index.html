@@ -57,63 +57,68 @@
 
     <!-- Front-End Routing Communication Engine Script -->
     <script>
-        async function fetchOptions() {
-            const url = document.getElementById('videoUrl').value.trim();
-            if(!url) return alert("Please supply a valid target link URL!");
+async function fetchOptions() {
+    const url = document.getElementById('videoUrl').value.trim();
+    if(!url) return alert("Please supply a valid target link URL!");
 
-            const status = document.getElementById('status');
-            const result = document.getElementById('result');
-            const linksContainer = document.getElementById('linksContainer');
+    const status = document.getElementById('status');
+    const result = document.getElementById('result');
+    const linksContainer = document.getElementById('linksContainer');
+    
+    status.classList.remove('hidden');
+    status.innerText = "Connecting to backend engine... ⚡";
+    result.classList.add('hidden');
+    linksContainer.innerHTML = '';
+
+    const RENDER_BACKEND_URL = "https://easy-video-downloader.onrender.com"; 
+
+    // Set a safety alert if Render takes longer than 4 seconds to wake up
+    const wakeUpTimer = setTimeout(() => {
+        status.innerText = "⏳ Server is waking up from idle state... This can take up to 60 seconds on the first load!";
+    }, 4000);
+
+    try {
+        const response = await fetch(`${RENDER_BACKEND_URL}/api/analyze`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url: url })
+        });
+        
+        clearTimeout(wakeUpTimer);
+        const data = await response.json();
+        if(!response.ok) throw new Error(data.detail || "Server processing boundary block.");
+        
+        document.getElementById('thumb').src = data.thumbnail || '';
+        document.getElementById('videoTitle').innerText = data.title || 'Video File Asset';
+        
+        data.formats.forEach(format => {
+            const el = document.createElement('a');
+            el.href = `${RENDER_BACKEND_URL}/api/download?url=${encodeURIComponent(format.direct_url)}&title=${encodeURIComponent(data.title)}&ext=${format.ext}`;
+            el.target = "_blank";
+            el.className = "group flex justify-between items-center bg-slate-950/60 hover:bg-slate-900 border border-white/5 hover:border-white/10 px-4 py-3.5 rounded-xl text-xs transition font-medium w-full text-slate-300 no-underline";
             
-            status.classList.remove('hidden');
-            result.classList.add('hidden');
-            linksContainer.innerHTML = '';
+            el.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <div class="w-7 h-7 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 border border-blue-500/10">💾</div>
+                    <div class="flex flex-col text-left">
+                        <span class="text-slate-200 font-semibold">${format.resolution} Quality Stream</span>
+                        <span class="text-slate-500 text-[10px] mt-0.5">Container: ${format.ext.toUpperCase()}</span>
+                    </div>
+                </div>
+                <span class="text-blue-400 font-bold bg-blue-500/10 px-2.5 py-1.5 rounded-lg border border-blue-500/20 group-hover:bg-blue-600 group-hover:text-white transition uppercase text-[10px] tracking-wide">Download →</span>
+            `;
+            linksContainer.appendChild(el);
+        });
 
-            // 💡 1. RENAME THIS BASE STRING TO YOUR LIVE RENDER BACKEND APP URL
-           const RENDER_BACKEND_URL = "https://easy-video-downloader.onrender.com";
-
-            try {
-                const response = await fetch(`${RENDER_BACKEND_URL}/api/analyze`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url: url })
-                });
-                
-                const data = await response.json();
-                if(!response.ok) throw new Error(data.detail || "Server processing boundary block.");
-                
-                document.getElementById('thumb').src = data.thumbnail || '';
-                document.getElementById('videoTitle').innerText = data.title || 'Video File Asset';
-                
-                data.formats.forEach(format => {
-                    const el = document.createElement('a');
-                    
-                    // Route the direct streaming links through our active Render proxy pipeline method
-                    el.href = `${RENDER_BACKEND_URL}/api/download?url=${encodeURIComponent(format.direct_url)}&title=${encodeURIComponent(data.title)}&ext=${format.ext}`;
-                    el.target = "_blank";
-                    
-                    el.className = "group flex justify-between items-center bg-slate-950/60 hover:bg-slate-900 border border-white/5 hover:border-white/10 px-4 py-3.5 rounded-xl text-xs transition font-medium w-full text-slate-300 no-underline";
-                    
-                    el.innerHTML = `
-                        <div class="flex items-center gap-3">
-                            <div class="w-7 h-7 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 border border-blue-500/10">💾</div>
-                            <div class="flex flex-col text-left">
-                                <span class="text-slate-200 font-semibold">${format.resolution} Quality Stream</span>
-                                <span class="text-slate-500 text-[10px] mt-0.5">Container: ${format.ext.toUpperCase()}</span>
-                            </div>
-                        </div>
-                        <span class="text-blue-400 font-bold bg-blue-500/10 px-2.5 py-1.5 rounded-lg border border-blue-500/20 group-hover:bg-blue-600 group-hover:text-white transition uppercase text-[10px] tracking-wide">Download →</span>
-                    `;
-                    linksContainer.appendChild(el);
-                });
-
-                result.classList.remove('hidden');
-            } catch (err) {
-                alert(err.message);
-            } finally {
-                status.classList.add('hidden');
-            }
-        }
+        result.classList.remove('hidden');
+    } catch (err) {
+        clearTimeout(wakeUpTimer);
+        alert("Connection delayed. If the backend was sleeping, please wait 30 seconds and click 'Extract Links' again!");
+        console.error(err);
+    } finally {
+        status.classList.add('hidden');
+    }
+}
     </script>
 </body>
 </html>
