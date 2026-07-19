@@ -1,12 +1,15 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 import yt_dlp
+import httpx
 import os
 import tempfile
 
 app = FastAPI()
 
+# Enable CORS so your frontend can communicate securely with this backend container
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -48,13 +51,11 @@ async def analyze_video(request: AnalyzeRequest):
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(request.url, download=False)
             formats = info.get('formats', [])
-            
             available_formats = []
             seen_resolutions = set()
 
             for f in formats[::-1]:
                 res = f.get('height')
-                # Only grab streams that have a valid direct URL
                 if res and f.get('url'):
                     res_str = f"{res}p"
                     if res_str not in seen_resolutions:
@@ -73,14 +74,13 @@ async def analyze_video(request: AnalyzeRequest):
                 })
             
             if not available_formats:
-                raise HTTPException(status_code=404, detail="No downloadable links found.")
+                raise HTTPException(status_code=404, detail="No downloadable link tracks extracted.")
                 
             return {
-                "title": info.get('title', 'Video Asset'),
+                "title": info.get('title', 'Extracted Video Asset'),
                 "thumbnail": info.get('thumbnail'),
                 "formats": available_formats
             }
-            
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     finally:
@@ -89,3 +89,40 @@ async def analyze_video(request: AnalyzeRequest):
                 os.remove(temp_cookie_file)
             except Exception:
                 pass
+
+# 🔄 RENDER PROXY TUNNEL (No 4.5MB File Cap!)
+@app.get("/api/download")
+async def download_proxy(url: str, title: str = "video", ext: str = "mp4"):
+    if not url:
+        raise HTTPException(status_code=400, detail="Missing source link parameter.")
+    
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "*/*",
+        "Connection": "keep-alive"
+    }
+    
+    client = httpx.AsyncClient(timeout=60.0)
+    
+    async def stream_generator():
+        try:
+            async with client.stream("GET", url, headers=headers) as r:
+                r.raise_for_status()
+                async for chunk in r.aiter_bytes(chunk_size=1024 * 64):
+                    yield chunk
+        except Exception as e:
+            print(f"Streaming exception: {str(e)}")
+        finally:
+            await client.aclose()
+
+    safe_title = "".join([c for c in title if c.isalpha() or c.isdigit() or c==' ']).rstrip()
+    filename = f"{safe_title}.{ext}"
+
+    return StreamingResponse(
+        stream_generator(),
+        media_type="application/octet-stream",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Cache-Control": "no-cache"
+        }
+    )
