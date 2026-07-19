@@ -54,6 +54,7 @@ async def analyze_video(request: AnalyzeRequest):
 
             for f in formats[::-1]:
                 res = f.get('height')
+                # Only grab streams that have a valid direct URL
                 if res and f.get('url'):
                     res_str = f"{res}p"
                     if res_str not in seen_resolutions:
@@ -72,10 +73,10 @@ async def analyze_video(request: AnalyzeRequest):
                 })
             
             if not available_formats:
-                raise HTTPException(status_code=404, detail="No downloadable streaming links could be extracted.")
+                raise HTTPException(status_code=404, detail="No downloadable links found.")
                 
             return {
-                "title": info.get('title', 'Extracted Video Asset'),
+                "title": info.get('title', 'Video Asset'),
                 "thumbnail": info.get('thumbnail'),
                 "formats": available_formats
             }
