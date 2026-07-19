@@ -3,125 +3,206 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EasyDownloader - High Speed Video Engine</title>
+    <title>EasyDownloader — Premium Multi-Platform Media Engine</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- 🟢 PLACEMENT 1: POP-UNDER AD CONTEXT INJECTION (Triggers on first background tap) -->
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass-card {
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+    </style>
+
+    <!-- 🟢 PLACEMENT 1: SMART POP-UNDER OVERLAY (Triggers on initial page interaction) -->
     <script type='text/javascript' src='//your-ad-network-script-url.com/popunder.js'></script>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center py-12 px-4 selection:bg-blue-500/30">
+<body class="bg-[#030712] text-slate-100 min-h-screen flex flex-col justify-between selection:bg-blue-600/30">
 
-    <div class="w-full max-w-2xl flex flex-col gap-6">
-        
-        <!-- 🟢 PLACEMENT 2: HIGH-CONVERSION RESPONSIVE TOP BANNER AD -->
-        <div class="w-full bg-slate-900/40 border border-white/5 rounded-2xl p-2 flex items-center justify-center min-h-[90px] text-xs text-slate-600 tracking-wider uppercase">
-            <!-- Paste your AdSense / Adsterra / PropellerAds Banner Code Script Tag Here -->
-            🏷️ Advertisement Banner Slot
-        </div>
-
-        <!-- Main Downloader App Card Interface -->
-        <div class="w-full bg-slate-900/60 border border-white/5 backdrop-blur-xl rounded-3xl p-6 md:p-8 shadow-2xl shadow-blue-950/20">
-            <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">EasyDownloader</h1>
-            <p class="text-slate-400 text-xs md:text-sm mt-2 font-medium">Bypass limits. Stream and save your favorite media assets instantly.</p>
-            
-            <div class="mt-8 flex flex-col md:flex-row gap-3">
-                <input type="text" id="videoUrl" placeholder="Paste your video link path right here..." class="flex-1 bg-slate-950/80 border border-white/5 hover:border-white/10 focus:border-blue-500/50 rounded-xl px-4 py-3.5 text-sm outline-none transition placeholder:text-slate-600 text-slate-200 font-medium">
-                <button onclick="fetchOptions()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm px-6 py-3.5 rounded-xl transition shadow-lg shadow-blue-600/10 active:scale-[0.98]">Extract Links</button>
-            </div>
-
-            <!-- Loading Spinner State Component -->
-            <div id="status" class="hidden mt-8 text-center text-xs text-slate-500 font-medium tracking-wide animate-pulse">
-                Parsing streaming nodes... Please stand by... ⚡
-            </div>
-
-            <!-- Resolution Results Display Panel Wrapper -->
-            <div id="result" class="hidden mt-8 pt-6 border-t border-white/5 flex flex-col gap-5">
-                <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-                    <img id="thumb" class="w-full sm:w-36 aspect-video rounded-xl object-cover border border-white/5 bg-slate-950" src="" alt="Thumbnail Preview">
-                    <h2 id="videoTitle" class="text-sm md:text-base font-bold text-slate-200 line-clamp-2">Processing video media asset...</h2>
-                </div>
-                
-                <!-- 🟢 PLACEMENT 3: IN-LINE CONTENT RESULTS AD BANNER (High engagement click-through rate) -->
-                <div class="w-full bg-slate-950/40 border border-white/5 rounded-xl p-2 flex items-center justify-center min-h-[60px] text-[10px] text-slate-700 tracking-widest uppercase">
-                    <!-- Paste your Native Inline Ad Code Script Tag Here -->
-                    Sponsored Link Asset
-                </div>
-
-                <div id="linksContainer" class="grid grid-cols-1 gap-2.5 w-full">
-                    <!-- Format option buttons are programmatically injected here -->
-                </div>
-            </div>
-        </div>
-
+    <!-- Top Sticky Subtle Alert Banner (Simulated Ad or Announcement) -->
+    <div class="w-full bg-gradient-to-r from-blue-950/40 via-slate-900/40 to-blue-950/40 border-b border-white/5 py-2 text-center text-[11px] font-semibold tracking-wider text-slate-400 uppercase px-4">
+        ⚡ Supercharged Engine: Unrestricted HD Multi-Threaded Tunnels Active
     </div>
 
-    <!-- Front-End Routing Communication Engine Script -->
-    <script>
-async function fetchOptions() {
-    const url = document.getElementById('videoUrl').value.trim();
-    if(!url) return alert("Please supply a valid target link URL!");
-
-    const status = document.getElementById('status');
-    const result = document.getElementById('result');
-    const linksContainer = document.getElementById('linksContainer');
-    
-    status.classList.remove('hidden');
-    status.innerText = "Connecting to backend engine... ⚡";
-    result.classList.add('hidden');
-    linksContainer.innerHTML = '';
-
-    const RENDER_BACKEND_URL = "https://easy-video-downloader.onrender.com"; 
-
-    // Set a safety alert if Render takes longer than 4 seconds to wake up
-    const wakeUpTimer = setTimeout(() => {
-        status.innerText = "⏳ Server is waking up from idle state... This can take up to 60 seconds on the first load!";
-    }, 4000);
-
-    try {
-        const response = await fetch(`${RENDER_BACKEND_URL}/api/analyze`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ url: url })
-        });
+    <!-- Main Outer Wrapper -->
+    <main class="flex-1 flex flex-col items-center justify-center py-10 px-4 max-w-4xl w-full mx-auto gap-6">
         
-        clearTimeout(wakeUpTimer);
-        const data = await response.json();
-        if(!response.ok) throw new Error(data.detail || "Server processing boundary block.");
-        
-        document.getElementById('thumb').src = data.thumbnail || '';
-        document.getElementById('videoTitle').innerText = data.title || 'Video File Asset';
-        
-data.formats.forEach(format => {
-    const el = document.createElement('a');
-    
-    // 💡 Pass the original user input 'url' here instead of format.direct_url
-    el.href = `${RENDER_BACKEND_URL}/api/download?url=${encodeURIComponent(url)}&title=${encodeURIComponent(data.title)}&ext=${format.ext}`;
-    el.target = "_blank";
-    
-    el.className = "group flex justify-between items-center bg-slate-950/60 hover:bg-slate-900 border border-white/5 hover:border-white/10 px-4 py-3.5 rounded-xl text-xs transition font-medium w-full text-slate-300 no-underline";
-    
-    el.innerHTML = `
-        <div class="flex items-center gap-3">
-            <div class="w-7 h-7 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 border border-blue-500/10">💾</div>
-            <div class="flex flex-col text-left">
-                <span class="text-slate-200 font-semibold">${format.resolution} Quality Stream</span>
-                <span class="text-slate-500 text-[10px] mt-0.5">Container: ${format.ext.toUpperCase()}</span>
+        <!-- 🟢 PLACEMENT 2: HIGH-CONVERSION HEADER LEADERBOARD BANNER -->
+        <div class="w-full glass-card rounded-2xl p-2 flex items-center justify-center min-h-[90px] text-xs text-slate-600 tracking-widest uppercase shadow-sm">
+            <!-- Paste Ad Code (e.g., 728x90 or Responsive Banner) Here -->
+            <span class="opacity-60">Sponsored Advertisement Banner</span>
+        </div>
+
+        <!-- App Layout Shell Split into Core Interface & Sidebar Panels -->
+        <div class="w-full grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+            
+            <!-- Left Side / Core Converter Frame (Spans 2 columns) -->
+            <div class="lg:col-span-2 flex flex-col gap-6">
+                <div class="glass-card rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden group">
+                    <!-- Subtle ambient lighting glow in the background -->
+                    <div class="absolute -top-24 -right-24 w-48 h-48 bg-blue-600/10 rounded-full blur-3xl transition-all group-hover:bg-blue-600/15"></div>
+                    
+                    <!-- App Branding Header -->
+                    <header class="flex items-center justify-between border-b border-white/5 pb-4">
+                        <div>
+                            <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
+                                EasyDownloader
+                            </h1>
+                            <p class="text-slate-400 text-xs mt-1.5 font-medium tracking-wide">
+                                Premium Universal Media Extraction Architecture
+                            </p>
+                        </div>
+                        <span class="bg-blue-500/10 text-blue-400 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full border border-blue-500/15 shadow-sm">
+                            v2.4 Live
+                        </span>
+                    </header>
+                    
+                    <!-- Search Input Integration Group -->
+                    <div class="mt-8 flex flex-col sm:flex-row gap-3">
+                        <div class="relative flex-1">
+                            <input type="text" id="videoUrl" placeholder="Paste link (YouTube, TikTok, Shorts, etc.)..." 
+                                class="w-full bg-slate-950/90 border border-white/5 hover:border-white/10 focus:border-blue-500/40 rounded-xl pl-4 pr-10 py-3.5 text-sm outline-none transition placeholder:text-slate-600 text-slate-200 font-medium shadow-inner">
+                        </div>
+                        <button onclick="fetchOptions()" 
+                            class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm px-7 py-3.5 rounded-xl transition-all shadow-lg shadow-blue-600/10 hover:shadow-blue-500/20 active:scale-[0.98] whitespace-nowrap">
+                            Extract Media
+                        </button>
+                    </div>
+
+                    <!-- Enhanced Dynamic Action Status Screen -->
+                    <div id="status" class="hidden mt-8 p-4 bg-slate-950/50 border border-white/5 rounded-xl text-center text-xs text-slate-400 font-medium tracking-wide">
+                        <span class="inline-block animate-spin mr-2 text-blue-400">⏳</span> 
+                        <span id="statusText">Initializing core framework handshake...</span>
+                    </div>
+
+                    <!-- Dynamic Layout Extraction Matrix -->
+                    <div id="result" class="hidden mt-8 pt-6 border-t border-white/5 flex flex-col gap-6">
+                        <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center bg-slate-950/40 p-4 border border-white/5 rounded-2xl">
+                            <img id="thumb" class="w-full sm:w-36 aspect-video rounded-xl object-cover border border-white/5 bg-slate-900 shadow-md" src="" alt="Thumbnail Preview">
+                            <h2 id="videoTitle" class="text-sm md:text-base font-bold text-slate-200 line-clamp-2 leading-relaxed">
+                                Querying video stream file system configuration parameters...
+                            </h2>
+                        </div>
+                        
+                        <!-- 🟢 PLACEMENT 3: IN-LINE NATIVE STREAM EXTRACTION BANNER (Maximum Conversion) -->
+                        <div class="w-full bg-slate-950/60 border border-white/5 rounded-xl p-3 flex items-center justify-center min-h-[75px] text-[10px] text-slate-600 tracking-widest uppercase font-medium">
+                            <!-- Paste In-Line Display / Native Content Ad Code Script Here -->
+                            🔥 Recommended Safe Download Extension Link Block
+                        </div>
+
+                        <div id="linksContainer" class="grid grid-cols-1 gap-2.5 w-full">
+                            <!-- Option structures dynamically generated -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side / Strategic Sticky Modular Sidebar Panel Component (1 column) -->
+            <div class="flex flex-col gap-6 w-full">
+                
+                <!-- 🟢 PLACEMENT 4: VERTICAL SIDEBAR DISPLAY BLOCK -->
+                <div class="w-full glass-card rounded-3xl p-4 flex flex-col items-center justify-center min-h-[250px] text-xs text-slate-600 tracking-wider uppercase text-center">
+                    <!-- Paste Medium Rectangle (300x250) or Sidebar Display Ad Script Here -->
+                    <span class="opacity-60 block mb-1">Sponsored Asset</span>
+                    <span class="text-[10px] text-slate-700 font-mono tracking-normal">Premium Partner Space</span>
+                </div>
+
+                <!-- Platform Structural Capabilities Overview -->
+                <div class="w-full glass-card rounded-3xl p-5 flex flex-col gap-3.5 text-xs text-slate-400">
+                    <h3 class="font-bold text-slate-200 tracking-wide border-b border-white/5 pb-2 uppercase text-[10px]">Engine Status</h3>
+                    <div class="flex justify-between items-center"><span class="flex items-center gap-2">🟢 System Speed</span> <span class="text-slate-200 font-semibold">10 Gbps</span></div>
+                    <div class="flex justify-between items-center"><span class="flex items-center gap-2">🟢 Global Bypass</span> <span class="text-slate-200 font-semibold">Enabled</span></div>
+                    <div class="flex justify-between items-center"><span class="flex items-center gap-2">🟢 Encryption Tunnels</span> <span class="text-slate-200 font-semibold">SSL Active</span></div>
+                </div>
             </div>
         </div>
-        <span class="text-blue-400 font-bold bg-blue-500/10 px-2.5 py-1.5 rounded-lg border border-blue-500/20 group-hover:bg-blue-600 group-hover:text-white transition uppercase text-[10px] tracking-wide">Download →</span>
-    `;
-    linksContainer.appendChild(el);
-});
 
-        result.classList.remove('hidden');
-    } catch (err) {
-        clearTimeout(wakeUpTimer);
-        alert("Connection delayed. If the backend was sleeping, please wait 30 seconds and click 'Extract Links' again!");
-        console.error(err);
-    } finally {
-        status.classList.add('hidden');
-    }
-}
+        <!-- 🟢 PLACEMENT 5: FOOTER HORIZONTAL APP BANNER AD -->
+        <div class="w-full glass-card rounded-2xl p-2 flex items-center justify-center min-h-[90px] text-xs text-slate-600 tracking-widest uppercase mt-2">
+            <!-- Paste Bottom Segment Leaderboard Ad Script Code Here -->
+            <span class="opacity-60">Sponsored Advertisement Banner</span>
+        </div>
+    </main>
+
+    <!-- Structural Minimalist Footer Layout -->
+    <footer class="w-full border-t border-white/5 bg-slate-950/40 backdrop-blur-md py-6 text-center text-[11px] text-slate-500 font-medium tracking-wide">
+        &copy; 2026 EasyDownloader Framework Hub. Built for absolute data routing privacy.
+    </footer>
+
+    <!-- Front-End Communication Engine Script -->
+    <script>
+        async function fetchOptions() {
+            const url = document.getElementById('videoUrl').value.trim();
+            if(!url) return alert("Please supply a valid target link URL!");
+
+            const status = document.getElementById('status');
+            const statusText = document.getElementById('statusText');
+            const result = document.getElementById('result');
+            const linksContainer = document.getElementById('linksContainer');
+            
+            status.classList.remove('hidden');
+            statusText.innerText = "Connecting to backend engine... ⚡";
+            result.classList.add('hidden');
+            linksContainer.innerHTML = '';
+
+            // 💡 1. CHANGE THIS TO YOUR LIVE RE-ROUTED RENDER BACKEND URL
+            const RENDER_BACKEND_URL = "https://easy-video-downloader.onrender.com"; 
+
+            // Safety cold-start tracking mechanism alert configuration 
+            const wakeUpTimer = setTimeout(() => {
+                statusText.innerText = "⏳ Server is spinning up from an idle sleep state... This can take up to 30 seconds on initial load!";
+            }, 4500);
+
+            try {
+                const response = await fetch(`${RENDER_BACKEND_URL}/api/analyze`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: url })
+                });
+                
+                clearTimeout(wakeUpTimer);
+                const data = await response.json();
+                if(!response.ok) throw new Error(data.detail || "Server processing boundary block exception.");
+                
+                document.getElementById('thumb').src = data.thumbnail || '';
+                document.getElementById('videoTitle').innerText = data.title || 'Video File Asset';
+                
+                data.formats.forEach(format => {
+                    const el = document.createElement('a');
+                    
+                    // Route the original user link configuration over to the unified download engine
+                    el.href = `${RENDER_BACKEND_URL}/api/download?url=${encodeURIComponent(url)}&title=${encodeURIComponent(data.title)}&ext=${format.ext}`;
+                    el.target = "_blank";
+                    
+                    el.className = "group flex justify-between items-center bg-slate-950/80 hover:bg-slate-900/90 border border-white/5 hover:border-blue-500/20 px-4 py-3.5 rounded-xl text-xs transition-all font-medium w-full text-slate-300 no-underline shadow-sm";
+                    
+                    el.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 border border-blue-500/10 font-bold group-hover:scale-105 transition-transform">⬇️</div>
+                            <div class="flex flex-col text-left">
+                                <span class="text-slate-200 font-semibold text-sm group-hover:text-blue-400 transition-colors">${format.resolution} High Definition</span>
+                                <span class="text-slate-500 text-[10px] mt-0.5 tracking-wider font-mono">Format: ${format.ext.toUpperCase()}</span>
+                            </div>
+                        </div>
+                        <span class="text-blue-400 font-bold bg-blue-500/10 px-3.5 py-2 rounded-lg border border-blue-500/15 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 transition-all uppercase text-[10px] tracking-widest shadow-sm">Get Link</span>
+                    `;
+                    linksContainer.appendChild(el);
+                });
+
+                result.classList.remove('hidden');
+            } catch (err) {
+                clearTimeout(wakeUpTimer);
+                alert("Connection delayed. If the backend engine was sleeping, please wait 20 seconds and click 'Extract Media' again!");
+                console.error(err);
+            } finally {
+                status.classList.add('hidden');
+            }
+        }
     </script>
 </body>
 </html>
