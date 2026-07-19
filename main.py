@@ -109,15 +109,31 @@ async def download_proxy(
     if not url:
         raise HTTPException(status_code=400, detail="Missing source link parameter.")
     
-# 🔒 Updated headers to mimic an official browser request and bypass TikTok's 403 firewall
+    # 1. Base browser headers to match an authentic device request
     headers = {
-        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
         "Accept": "*/*",
         "Accept-Language": "en-US,en;q=0.9",
         "Referer": "https://www.tiktok.com/",
         "Origin": "https://www.tiktok.com",
         "Connection": "keep-alive"
     }
+
+    # 2. Extract cookies from environment variables to authenticate the file download
+    cookies_content = os.getenv("YT_COOKIES")
+    cookie_dict = {}
+    
+    if cookies_content:
+        try:
+            for line in cookies_content.splitlines():
+                if line.strip() and not line.startswith('#'):
+                    parts = line.split('\t')
+                    if len(parts) >= 7:
+                        # Extract the cookie name and its value string safely
+                        cookie_dict[parts[5]] = parts[6]
+        except Exception as ce:
+            print(f"Failed parsing cookies for download tunnel: {str(ce)}")
+
     # Generate a unique temp file path in Render's storage directory
     temp_dir = tempfile.gettempdir()
     safe_title = "".join([c for c in title if c.isalpha() or c.isdigit() or c==' ']).rstrip()
@@ -130,7 +146,8 @@ async def download_proxy(
     try:
         # Download the file directly onto the Render container file system block
         with open(local_filepath, "wb") as f:
-            async with httpx.AsyncClient(timeout=180.0, follow_redirects=True) as client:
+            # 🚀 Passing both browser spoofing headers AND authentication cookies
+            async with httpx.AsyncClient(timeout=180.0, follow_redirects=True, cookies=cookie_dict) as client:
                 async with client.stream("GET", url, headers=headers) as response:
                     response.raise_for_status()
                     async for chunk in response.aiter_bytes(chunk_size=1024 * 64):
