@@ -5,7 +5,7 @@
   ],
   "rewrites": [
     {
-      "source": "/api/analyze",
+      "source": "/api/(.*)",
       "destination": "/main.py"
     },
     {
