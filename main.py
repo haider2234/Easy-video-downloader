@@ -91,38 +91,57 @@ async def analyze_video(request: AnalyzeRequest):
                 pass
 
 # 🔄 RENDER PROXY TUNNEL (No 4.5MB File Cap!)
+# 🔄 STABLE RENDER PROXY TUNNEL (Buffered & Optimized for Mobile)
 @app.get("/api/download")
 async def download_proxy(url: str, title: str = "video", ext: str = "mp4"):
     if not url:
         raise HTTPException(status_code=400, detail="Missing source link parameter.")
     
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
         "Accept": "*/*",
         "Connection": "keep-alive"
     }
     
-    client = httpx.AsyncClient(timeout=60.0)
+    client = httpx.AsyncClient(timeout=120.0, follow_redirects=True)
     
+    try:
+        # Send a HEAD or initial request to fetch target stream metadata headers
+        response_head = await client.get(url, headers=headers, timeout=10.0)
+        content_length = response_head.headers.get("content-length")
+    except Exception:
+        content_length = None
+
     async def stream_generator():
         try:
+            # Use 128KB buffer chunks to prevent connection dropping on mobile networks
             async with client.stream("GET", url, headers=headers) as r:
                 r.raise_for_status()
-                async for chunk in r.aiter_bytes(chunk_size=1024 * 64):
+                async for chunk in r.aiter_bytes(chunk_size=1024 * 128):
                     yield chunk
         except Exception as e:
-            print(f"Streaming exception: {str(e)}")
+            print(f"Streaming transmission failure: {str(e)}")
         finally:
             await client.aclose()
 
+    # Clean the title securely to avoid hitting filename parameter encoding issues
     safe_title = "".join([c for c in title if c.isalpha() or c.isdigit() or c==' ']).rstrip()
+    if not safe_title:
+        safe_title = "download"
     filename = f"{safe_title}.{ext}"
+
+    # Build response headers manually to force the mobile phone's native file manager to stay open
+    response_headers = {
+        "Content-Disposition": f'attachment; filename="{filename}"',
+        "Cache-Control": "public, max-age=3600",
+        "X-Content-Type-Options": "nosniff"
+    }
+    
+    if content_length:
+        response_headers["Content-Length"] = content_length
 
     return StreamingResponse(
         stream_generator(),
         media_type="application/octet-stream",
-        headers={
-            "Content-Disposition": f'attachment; filename="{filename}"',
-            "Cache-Control": "no-cache"
-        }
+        headers=response_headers
     )
