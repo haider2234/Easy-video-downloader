@@ -109,62 +109,58 @@ async def download_proxy(
     if not url:
         raise HTTPException(status_code=400, detail="Missing source link parameter.")
     
-    # 1. Base browser headers to match an authentic device request
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-        "Accept": "*/*",
-        "Accept-Language": "en-US,en;q=0.9",
-        "Referer": "https://www.tiktok.com/",
-        "Origin": "https://www.tiktok.com",
-        "Connection": "keep-alive"
-    }
-
-    # 2. Extract cookies from environment variables to authenticate the file download
-    cookies_content = os.getenv("YT_COOKIES")
-    cookie_dict = {}
-    
-    if cookies_content:
-        try:
-            for line in cookies_content.splitlines():
-                if line.strip() and not line.startswith('#'):
-                    parts = line.split('\t')
-                    if len(parts) >= 7:
-                        # Extract the cookie name and its value string safely
-                        cookie_dict[parts[5]] = parts[6]
-        except Exception as ce:
-            print(f"Failed parsing cookies for download tunnel: {str(ce)}")
-
-    # Generate a unique temp file path in Render's storage directory
-    temp_dir = tempfile.gettempdir()
+    # Clean the filename safely
     safe_title = "".join([c for c in title if c.isalpha() or c.isdigit() or c==' ']).rstrip()
     if not safe_title:
         safe_title = "download"
-    
+        
+    temp_dir = tempfile.gettempdir()
     local_filename = f"dl_{os.urandom(4).hex()}_{safe_title}.{ext}"
     local_filepath = os.path.join(temp_dir, local_filename)
 
+    # 1. Base configuration for yt-dlp downloading engine
+    ydl_opts = {
+        'outtmpl': local_filepath,
+        'format': 'best',  # Natively picks the best pre-merged track
+        'quiet': True,
+        'no_warnings': True,
+    }
+
+    # 2. Inject your secure cookie environment variable if available
+    cookies_content = os.getenv("YT_COOKIES")
+    temp_cookie_file = None
+
+    if cookies_content:
+        try:
+            with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as f:
+                f.write(cookies_content)
+                temp_cookie_file = f.name
+            ydl_opts['cookiefile'] = temp_cookie_file
+        except Exception as ce:
+            print(f"Cookie setup warning: {str(ce)}")
+
     try:
-        # Download the file directly onto the Render container file system block
-        with open(local_filepath, "wb") as f:
-            # 🚀 Passing both browser spoofing headers AND authentication cookies
-            async with httpx.AsyncClient(timeout=180.0, follow_redirects=True, cookies=cookie_dict) as client:
-                async with client.stream("GET", url, headers=headers) as response:
-                    response.raise_for_status()
-                    async for chunk in response.aiter_bytes(chunk_size=1024 * 64):
-                        f.write(chunk)
-                        
+        # 🚀 Let yt-dlp handle the request to bypass TikTok's 403 block perfectly
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([url])
+            
     except Exception as e:
         if os.path.exists(local_filepath):
-            try:
-                os.remove(local_filepath)
-            except Exception:
-                pass
-        raise HTTPException(status_code=500, detail=f"Proxy processing error: {str(e)}")
+            try: os.remove(local_filepath)
+            except Exception: pass
+        raise HTTPException(status_code=500, detail=f"Engine download failed: {str(e)}")
+    finally:
+        if temp_cookie_file and os.path.exists(temp_cookie_file):
+            try: os.remove(temp_cookie_file)
+            except Exception: pass
 
-    # Register the cleanup routine to run immediately after the response finishes streaming
+    # Double-check file execution before serving
+    if not os.path.exists(local_filepath):
+        raise HTTPException(status_code=500, detail="Downloaded asset could not be located on disk storage.")
+
+    # Register the background cleanup task
     background_tasks.add_task(remove_file, local_filepath)
 
-    # Return a structural FileResponse, forcing the browser to process it as a single static download
     return FileResponse(
         path=local_filepath,
         media_type="application/octet-stream",
