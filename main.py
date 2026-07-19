@@ -109,12 +109,15 @@ async def download_proxy(
     if not url:
         raise HTTPException(status_code=400, detail="Missing source link parameter.")
     
+# 🔒 Updated headers to mimic an official browser request and bypass TikTok's 403 firewall
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1",
         "Accept": "*/*",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Referer": "https://www.tiktok.com/",
+        "Origin": "https://www.tiktok.com",
         "Connection": "keep-alive"
     }
-
     # Generate a unique temp file path in Render's storage directory
     temp_dir = tempfile.gettempdir()
     safe_title = "".join([c for c in title if c.isalpha() or c.isdigit() or c==' ']).rstrip()
