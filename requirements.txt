@@ -2,3 +2,4 @@ fastapi
 pydantic
 yt-dlp
 httpx
+uvicorn
