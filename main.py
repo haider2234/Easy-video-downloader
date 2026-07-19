@@ -1,6 +1,6 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 import yt_dlp
 import httpx
@@ -9,7 +9,7 @@ import tempfile
 
 app = FastAPI()
 
-# Enable CORS so your frontend can communicate securely with this backend container
+# Enable CORS so your Vercel frontend can communicate securely with this Render backend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -20,6 +20,15 @@ app.add_middleware(
 
 class AnalyzeRequest(BaseModel):
     url: str
+
+def remove_file(path: str):
+    """Background task to securely wipe the cached file after transmission completes."""
+    if os.path.exists(path):
+        try:
+            os.remove(path)
+            print(f"Successfully cleaned up temporary asset: {path}")
+        except Exception as e:
+            print(f"Cleanup warning: {str(e)}")
 
 @app.post("/api/analyze")
 async def analyze_video(request: AnalyzeRequest):
@@ -90,9 +99,13 @@ async def analyze_video(request: AnalyzeRequest):
             except Exception:
                 pass
 
-# 🔄 BUG-FREE RENDER PROXY TUNNEL (Chunked Transfer Encoding)
 @app.get("/api/download")
-async def download_proxy(url: str, title: str = "video", ext: str = "mp4"):
+async def download_proxy(
+    url: str, 
+    title: str = "video", 
+    ext: str = "mp4", 
+    background_tasks: BackgroundTasks = BackgroundTasks()
+):
     if not url:
         raise HTTPException(status_code=400, detail="Missing source link parameter.")
     
@@ -101,40 +114,39 @@ async def download_proxy(url: str, title: str = "video", ext: str = "mp4"):
         "Accept": "*/*",
         "Connection": "keep-alive"
     }
-    
-    # Increase limits to prevent httpx from dropping the connection early
-    limits = httpx.Limits(max_keepalive_connections=5, max_connections=10)
-    client = httpx.AsyncClient(timeout=300.0, follow_redirects=True, limits=limits)
-    
-    async def stream_generator():
-        try:
-            # 64KB chunks provide an ideal balance between speed and server memory retention
-            async with client.stream("GET", url, headers=headers) as r:
-                r.raise_for_status()
-                async for chunk in r.aiter_bytes(chunk_size=1024 * 64):
-                    yield chunk
-        except Exception as e:
-            print(f"Stream transmission encountered an expected end or halt: {str(e)}")
-        finally:
-            await client.aclose()
 
-    # Clean the title securely to avoid hitting filename parameter encoding issues
+    # Generate a unique temp file path in Render's storage directory
+    temp_dir = tempfile.gettempdir()
     safe_title = "".join([c for c in title if c.isalpha() or c.isdigit() or c==' ']).rstrip()
     if not safe_title:
         safe_title = "download"
-    filename = f"{safe_title}.{ext}"
+    
+    local_filename = f"dl_{os.urandom(4).hex()}_{safe_title}.{ext}"
+    local_filepath = os.path.join(temp_dir, local_filename)
 
-    # ⚠️ NOTICE: "Content-Length" is completely removed from the headers below.
-    # This forces the browser to use a reliable chunked transmission pipeline.
-    response_headers = {
-        "Content-Disposition": f'attachment; filename="{filename}"',
-        "Cache-Control": "no-cache, no-store, must-revalidate",
-        "Pragma": "no-cache",
-        "X-Content-Type-Options": "nosniff"
-    }
+    try:
+        # Download the file directly onto the Render container file system block
+        with open(local_filepath, "wb") as f:
+            async with httpx.AsyncClient(timeout=180.0, follow_redirects=True) as client:
+                async with client.stream("GET", url, headers=headers) as response:
+                    response.raise_for_status()
+                    async for chunk in response.aiter_bytes(chunk_size=1024 * 64):
+                        f.write(chunk)
+                        
+    except Exception as e:
+        if os.path.exists(local_filepath):
+            try:
+                os.remove(local_filepath)
+            except Exception:
+                pass
+        raise HTTPException(status_code=500, detail=f"Proxy processing error: {str(e)}")
 
-    return StreamingResponse(
-        stream_generator(),
+    # Register the cleanup routine to run immediately after the response finishes streaming
+    background_tasks.add_task(remove_file, local_filepath)
+
+    # Return a structural FileResponse, forcing the browser to process it as a single static download
+    return FileResponse(
+        path=local_filepath,
         media_type="application/octet-stream",
-        headers=response_headers
+        filename=f"{safe_title}.{ext}"
     )
