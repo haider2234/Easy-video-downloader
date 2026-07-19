@@ -178,20 +178,19 @@ data.formats.forEach(format => {
         <span id="btn-text-${format.resolution}" class="text-blue-400 font-bold bg-blue-500/10 px-2.5 py-1.5 rounded-lg border border-blue-500/20 group-hover:bg-blue-600 group-hover:text-white transition uppercase text-[10px] tracking-wide">Download →</span>
     `;
 
-    // 🚀 BROWSER-NATIVE DOWNLOAD ROUTING OVERRIDE
+    // 🚀 BROWSER-NATIVE DIRECT DOWNLOAD TRICK
     btn.onclick = () => {
         const textSpan = document.getElementById(`btn-text-${format.resolution}`);
         textSpan.innerText = "Opening... 🚀";
         
-        // Clean the media title to avoid breaking browser URL properties
+        // Clean the video title text so it doesn't break url parameters
         const cleanTitle = encodeURIComponent(data.title.replace(/[^a-zA-Z0-9 ]/g, ""));
         
-        // Append the video parameters to force an attachment behavior natively
-        const downloadUrl = format.direct_url + `&title=${cleanTitle}`;
+        // Force an attachment behavior on mobile browsers
+        const finalDownloadUrl = format.direct_url + `&title=${cleanTitle}`;
         
-        // Open the raw stream link directly in a separate browser sandbox context
-        // This stops Javascript from hitting CORS blocks and forces the mobile browser to open it
-        window.open(downloadUrl, '_blank');
+        // Open the raw link in a separate sandbox window context
+        window.open(finalDownloadUrl, '_blank');
         
         setTimeout(() => {
             textSpan.innerText = "Download →";
