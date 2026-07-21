@@ -1,7 +1,7 @@
 {
   "name": "EasyDownloader PRO",
   "short_name": "EasyDownloader",
-  "description": "Free HD Video Downloader Without Watermarks",
+  "description": "Fast and free online utility to extract and download high definition social media videos without watermarks.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#030712",
