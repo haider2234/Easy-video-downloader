@@ -505,6 +505,79 @@ Windows, macOS, Linux, Android and iPhone using modern browsers.
 </div>
 
 </section>
+ <!-- JavaScript Interactive Data Broker Routing Configuration -->
+    <script>
+        async function fetchOptions() {
+            const url = document.getElementById('videoUrl').value.trim();
+            if(!url) return alert("Please supply a valid target link URL!");
+
+            const status = document.getElementById('status');
+            const statusText = document.getElementById('statusText');
+            const result = document.getElementById('result');
+            const linksContainer = document.getElementById('linksContainer');
+            
+            status.classList.remove('hidden');
+            statusText.innerText = "Connecting to backend engine... ⚡";
+            result.classList.add('hidden');
+            linksContainer.innerHTML = '';
+
+            // 💡 AUTOMATICALLY HOOKED DIRECTLY TO YOUR SECURE RENDER ENDPOINT BACKEND INTERFACE
+            const RENDER_BACKEND_URL = "https://easy-video-downloader.onrender.com"; 
+
+            const wakeUpTimer = setTimeout(() => {
+                statusText.innerText = "⏳ Server is spinning up from an idle sleep state... This can take up to 30 seconds on initial load!";
+            }, 4500);
+
+            try {
+                const response = await fetch(`${RENDER_BACKEND_URL}/api/analyze`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: url })
+                });
+                
+                clearTimeout(wakeUpTimer);
+                const data = await response.json();
+                if(!response.ok) throw new Error(data.detail || "Server processing boundary block exception.");
+                
+                document.getElementById('thumb').src = data.thumbnail || '';
+                document.getElementById('videoTitle').innerText = data.title || 'Video File Asset';
+                
+                data.formats.forEach(format => {
+                    const el = document.createElement('a');
+                    
+                    // Direct original string tracking payload variables mapped securely down to our backend tunnel download proxy
+                    el.href = `${RENDER_BACKEND_URL}/api/download?url=${encodeURIComponent(url)}&title=${encodeURIComponent(data.title)}&ext=${format.ext}`;
+                    el.target = "_blank";
+                    
+                    // 💡 2. PASTE YOUR ADSTERRA/MONETAG SMART LINK RIGHT HERE:
+    const MY_SMART_LINK = "https://www.effectivecpmnetwork.com/ykrw8mg1m3?key=52188e34c58330359a57f3f8ecfb3abe";
+                    
+                    el.className = "group flex justify-between items-center bg-slate-950/80 hover:bg-slate-900/90 border border-white/5 hover:border-blue-500/20 px-4 py-3.5 rounded-xl text-xs transition-all font-medium w-full text-slate-300 no-underline shadow-sm";
+                    
+                    el.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 border border-blue-500/10 font-bold group-hover:scale-105 transition-transform">⬇️</div>
+                            <div class="flex flex-col text-left">
+                                <span class="text-slate-200 font-semibold text-sm group-hover:text-blue-400 transition-colors">${format.resolution} High Quality</span>
+                                <span class="text-slate-500 text-[10px] mt-0.5 tracking-wider font-mono">Format: ${format.ext.toUpperCase()}</span>
+                            </div>
+                        </div>
+                        <span class="text-blue-400 font-bold bg-blue-500/10 px-3.5 py-2 rounded-lg border border-blue-500/15 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 transition-all uppercase text-[10px] tracking-widest shadow-sm">Get Link</span>
+                    `;
+                    linksContainer.appendChild(el);
+                });
+
+                result.classList.remove('hidden');
+            } catch (err) {
+                clearTimeout(wakeUpTimer);
+                alert("Connection delayed. If the backend engine was sleeping, please wait 20 seconds and click 'Extract Media' again!");
+                console.error(err);
+            } finally {
+                status.classList.add('hidden');
+            }
+        }
+    </script>
+    
     <footer class="mt-20 border-t border-slate-800 py-10 text-center">
 
 <p class="text-slate-400">
