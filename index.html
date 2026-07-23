@@ -220,13 +220,31 @@ Paste any supported video URL below and click
 </p>
 
 <!-- KEEP YOUR EXISTING INPUT BOX HERE -->
-
+div class="mt-8 flex flex-col sm:flex-row gap-3">
+                        <div class="relative flex-1">
+                            <label for="videoUrl" class="sr-only">Paste social media URL video link</label>
+                            <input type="url" id="videoUrl" placeholder="Paste link (TikTok, YouTube, Shorts, etc.)..." 
+                                class="w-full bg-slate-950/90 border border-white/5 hover:border-white/10 focus:border-blue-500/40 rounded-xl pl-4 pr-10 py-3.5 text-sm outline-none transition placeholder:text-slate-600 text-slate-200 font-medium shadow-inner">
+                        </div>
 <!-- KEEP YOUR EXISTING BUTTON HERE -->
-
+ <button onclick="fetchOptions()" 
+                            class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm px-7 py-3.5 rounded-xl transition-all shadow-lg shadow-blue-600/10 hover:shadow-blue-500/20 active:scale-[0.98] whitespace-nowrap">
+                            Extract Media
+                        </button>
+                    </div>
 <!-- KEEP STATUS -->
-
+<div id="status" class="hidden mt-8 p-4 bg-slate-950/50 border border-white/5 rounded-xl text-center text-xs text-slate-400 font-medium tracking-wide">
+                        <span class="inline-block animate-spin mr-2 text-blue-400">⏳</span> 
+                        <span id="statusText">Initializing server framework handshake...</span>
+                    </div>
 <!-- KEEP RESULT -->
-
+<div id="result" class="hidden mt-8 pt-6 border-t border-white/5 flex flex-col gap-6">
+                        <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center bg-slate-950/40 p-4 border border-white/5 rounded-2xl">
+                            <img id="thumb" class="w-full sm:w-36 aspect-video rounded-xl object-cover border border-white/5 bg-slate-900 shadow-md" src="" alt="Video Thumbnail Track Preview">
+                            <h2 id="videoTitle" class="text-sm md:text-base font-bold text-slate-200 line-clamp-2 leading-relaxed">
+                                Processing requested media file stream details...
+                            </h2>
+                        </div>
 </section>
     <section class="mt-16">
 
