@@ -1,0 +1,5 @@
+User-agent: *
+
+Allow: /
+
+Sitemap: https://easy-video-downloader-8vg1.vercel.app/sitemap.xml
